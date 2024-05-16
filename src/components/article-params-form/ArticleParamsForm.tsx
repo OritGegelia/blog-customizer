@@ -73,8 +73,6 @@ export const ArticleParamsForm = ({ onSubmit }: ChildProps) => {
 		});
 	};
 
-	// const { font, size, fontColor, bgColor, width } = isSelected;
-
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		onSubmit(Object.values(isSelected).map((option) => option.value));
