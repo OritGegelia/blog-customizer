@@ -13,25 +13,28 @@ import {
 	contentWidthArr,
 	fontSizeOptions,
 	OptionType,
+	ArticleStateType,
+	defaultArticleState,
 } from 'src/constants/articleProps';
 import { Separator } from '../separator';
 
-type OnSubmit = (newValues: string[]) => void;
-interface ChildProps {
-	onSubmit: OnSubmit;
+interface ArticleParamsFormProps {
+	setNewArticle: (selectedValues: ArticleStateType) => void;
 }
 
-export const ArticleParamsForm = ({ onSubmit }: ChildProps) => {
+export const ArticleParamsForm = ({
+	setNewArticle,
+}: ArticleParamsFormProps) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const [isSelected, setSelected] = useState({
-		font: fontFamilyOptions[0],
-		size: fontSizeOptions[0],
-		fontColor: fontColors[0],
-		bgColor: backgroundColors[0],
-		width: contentWidthArr[0],
+	const [selectedValue, setSelectedValue] = useState({
+		font: defaultArticleState.fontFamilyOption,
+		size: defaultArticleState.fontSizeOption,
+		fontColor: defaultArticleState.fontColor,
+		bgColor: defaultArticleState.backgroundColor,
+		width: defaultArticleState.contentWidth,
 	});
 
-	const formRef = useRef<HTMLFormElement>(null);
+	const formRef = useRef<HTMLDivElement | null>(null);
 
 	const changeOpenState = () => {
 		setIsOpen(!isOpen);
@@ -44,94 +47,105 @@ export const ArticleParamsForm = ({ onSubmit }: ChildProps) => {
 			}
 		};
 
-		window.addEventListener('mousedown', closeByOverlay);
-
-		if (!isOpen) {
+		if (isOpen) {
+			window.addEventListener('mousedown', closeByOverlay);
+		} else {
 			return () => {
 				window.removeEventListener('mousedown', closeByOverlay);
 			};
 		}
-	}, []);
-
-	const handleSelectChange = (
-		optionType: string,
-		selectedOption: OptionType
-	) => {
-		setSelected((prevOptions) => ({
-			...prevOptions,
-			[optionType]: selectedOption,
-		}));
-	};
+	}, [isOpen]);
 
 	const handleSettingsReset = () => {
-		setSelected({
-			font: fontFamilyOptions[0],
-			size: fontSizeOptions[0],
-			fontColor: fontColors[0],
-			bgColor: backgroundColors[0],
-			width: contentWidthArr[0],
+		setSelectedValue({
+			font: defaultArticleState.fontFamilyOption,
+			size: defaultArticleState.fontSizeOption,
+			fontColor: defaultArticleState.fontColor,
+			bgColor: defaultArticleState.backgroundColor,
+			width: defaultArticleState.contentWidth,
 		});
 	};
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		onSubmit(Object.values(isSelected).map((option) => option.value));
+		const currentValues = {
+			fontFamilyOption: selectedValue.font,
+			fontColor: selectedValue.fontColor,
+			backgroundColor: selectedValue.bgColor,
+			contentWidth: selectedValue.width,
+			fontSizeOption: selectedValue.size,
+		};
+		setNewArticle(currentValues);
+	};
+
+	const handleSelectChange = (
+		optionType: string,
+		selectedOption: OptionType
+	) => {
+		setSelectedValue((prevOptions) => ({
+			...prevOptions,
+			[optionType]: selectedOption,
+		}));
 	};
 
 	return (
 		<>
-			<ArrowButton onClick={changeOpenState} isOpen={isOpen} />
-			<aside
-				className={`${styles.container} ${
-					isOpen ? styles.container_open : ''
-				}`}>
-				<form ref={formRef} className={styles.form} onSubmit={handleSubmit}>
-					<Text as='h2' weight={800} size={25} uppercase>
-						Задайте параметры
-					</Text>
-					<Select
-						title='Шрифт'
-						placeholder='Выберите шрифт'
-						options={fontFamilyOptions}
-						selected={isSelected.font}
-						onChange={(font) => handleSelectChange('font', font)}
-					/>
-					<RadioGroup
-						title={'Размер шрифта'}
-						name={'str'}
-						options={fontSizeOptions}
-						selected={isSelected.size}
-						onChange={(size) => handleSelectChange('size', size)}
-					/>
-					<Select
-						title='Цвет шрифта'
-						options={fontColors}
-						selected={isSelected.fontColor}
-						onChange={(fontColor) => handleSelectChange('fontColor', fontColor)}
-					/>
-					<Separator />
-					<Select
-						title='Цвет фона'
-						options={backgroundColors}
-						selected={isSelected.bgColor}
-						onChange={(bgColor) => handleSelectChange('bgColor', bgColor)}
-					/>
-					<Select
-						title='Ширина контента'
-						options={contentWidthArr}
-						selected={isSelected.width}
-						onChange={(width) => handleSelectChange('width', width)}
-					/>
-					<div className={styles.bottomContainer}>
-						<Button
-							title='Сбросить'
-							type='submit'
-							onClick={handleSettingsReset}
+			<div ref={formRef}>
+				<ArrowButton onClick={changeOpenState} isOpen={isOpen} />
+				<aside
+					className={`${styles.container} ${
+						isOpen ? styles.container_open : ''
+					}`}>
+					<form className={styles.form} onSubmit={handleSubmit}>
+						<Text as='h2' weight={800} size={25} uppercase>
+							Задайте параметры
+						</Text>
+						<Select
+							title='Шрифт'
+							placeholder='Выберите шрифт'
+							options={fontFamilyOptions}
+							selected={selectedValue.font}
+							onChange={(font) => handleSelectChange('font', font)}
 						/>
-						<Button title='Применить' type='submit' />
-					</div>
-				</form>
-			</aside>
+						<RadioGroup
+							title={'Размер шрифта'}
+							name={'str'}
+							options={fontSizeOptions}
+							selected={selectedValue.size}
+							onChange={(size) => handleSelectChange('size', size)}
+						/>
+						<Select
+							title='Цвет шрифта'
+							options={fontColors}
+							selected={selectedValue.fontColor}
+							onChange={(fontColor) =>
+								handleSelectChange('fontColor', fontColor)
+							}
+						/>
+						<Separator />
+						<Select
+							title='Цвет фона'
+							options={backgroundColors}
+							selected={selectedValue.bgColor}
+							onChange={(bgColor) => handleSelectChange('bgColor', bgColor)}
+						/>
+						<Select
+							title='Ширина контента'
+							options={contentWidthArr}
+							selected={selectedValue.width}
+							onChange={(width) => handleSelectChange('width', width)}
+						/>
+						<div className={styles.bottomContainer}>
+							<Button
+								title='Сбросить'
+								type='submit'
+								onClick={handleSettingsReset}
+							/>
+							<Button title='Применить' type='submit' />
+						</div>
+					</form>
+				</aside>
+			</div>
 		</>
 	);
 };
