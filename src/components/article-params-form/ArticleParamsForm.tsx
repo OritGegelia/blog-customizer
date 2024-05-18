@@ -5,7 +5,9 @@ import { RadioGroup } from '../radio-group';
 import { Text } from '../text';
 
 import styles from './ArticleParamsForm.module.scss';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
+import { useCloseByOverlay } from 'src/hooks/useCloseByOverlay';
+
 import {
 	fontFamilyOptions,
 	fontColors,
@@ -40,21 +42,11 @@ export const ArticleParamsForm = ({
 		setIsOpen(!isOpen);
 	};
 
-	useEffect(() => {
-		const closeByOverlay = (e: MouseEvent) => {
-			if (isOpen && !formRef.current?.contains(e.target as Node)) {
-				changeOpenState();
-			}
-		};
-
-		if (isOpen) {
-			window.addEventListener('mousedown', closeByOverlay);
-		} else {
-			return () => {
-				window.removeEventListener('mousedown', closeByOverlay);
-			};
-		}
-	}, [isOpen]);
+	useCloseByOverlay({
+		optionRef: formRef,
+		onChange: changeOpenState,
+		state: isOpen,
+	});
 
 	const handleSettingsReset = () => {
 		setSelectedValue({
